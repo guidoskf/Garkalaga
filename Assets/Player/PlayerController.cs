@@ -9,6 +9,8 @@ public class PlayerController : MonoBehaviour
     [SerializeField] float reloading = 0.2f;
     [SerializeField] float bulletForce = 25f;
     [SerializeField] GameObject bulletPrefab;
+    [SerializeField] bool phone = false;
+    [SerializeField] Camera cam;
     /*
     private Touch touch;
     [SerializeField] float speedModifier = 0.01f;
@@ -25,9 +27,8 @@ public class PlayerController : MonoBehaviour
         }
     }
     */
-    private Vector3 touchPosition;
+
     private Rigidbody2D rb;
-    private Vector3 direction;
     [SerializeField] float moveSpeed = 10f;
 
     private void Start()
@@ -37,28 +38,59 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (Input.touchCount > 0)
+        if (phone)
         {
-            if(reload == false)
+            if (Input.touchCount > 0)
             {
-                Shoot();
-                reload = true;
+                Vector3 touchPosition;
+                Vector3 direction;
+                Touch touch = Input.GetTouch(0);
+
+                touchPosition = Camera.main.ScreenToWorldPoint(touch.position);
+                touchPosition.z = 0;
+                direction = (touchPosition - transform.position);
+                rb.velocity = new Vector2(direction.x, direction.y) * moveSpeed * Time.deltaTime;
+
+                if (touch.phase == TouchPhase.Ended)
+                {
+                    rb.velocity = Vector2.zero;
+                }
             }
-
-            Touch touch = Input.GetTouch(0);
-            touchPosition = Camera.main.ScreenToWorldPoint(touch.position);
-            touchPosition.z = 0;
-            direction = (touchPosition - transform.position);
-            rb.velocity = new Vector2(direction.x, direction.y) * moveSpeed * Time.deltaTime;
-
-            if (touch.phase == TouchPhase.Ended)
+            else
             {
-                rb.velocity = Vector2.zero;
+                rb.velocity = new Vector2(0, 0);
             }
         }
         else
         {
-            rb.velocity = new Vector2(0, 0);
+            Vector3 mousePosition;
+            //Vector3 direction;
+
+            mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            mousePosition.z = 0;
+            //direction = (mousePosition - transform.position);
+            //rb.velocity = new Vector2(direction.x, direction.y) * moveSpeed * Time.deltaTime;
+            transform.position = Vector3.MoveTowards(transform.position, mousePosition, Time.deltaTime * moveSpeed);
+        }
+
+        //transform.position = cam.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, 5));
+
+        /*
+        ray = cam.ScreenPointToRay(Input.mousePosition);
+
+        if (Physics.Raycast(ray, out hit))
+        {
+            if (hit.collider == shipCollider)
+            {
+                transform.position = Vector3.MoveTowards(transform.position, hit.point, Time.deltaTime * moveSpeed);
+            }
+        }
+        */
+
+        if (reload == false)
+        {
+            Shoot();
+            reload = true;
         }
     }
 
